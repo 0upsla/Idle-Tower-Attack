@@ -1,0 +1,28 @@
+*, *:before, *:after {
+    box-sizing: border-box;
+    border : 1px solid black;
+}
+
+#titre {
+    align-items: center;
+    text-align:center;
+    border: 1px solid black;
+}
+
+#canvas {
+    min-width : 310px;
+    min-height : 310px;
+    padding : 10px;
+}
+canvas {
+    display : block;
+
+}
+section {
+    display : flex;
+}
+nav {
+    min-width : 50px;
+    min-height : 50px;
+    background-color : red;
+}
