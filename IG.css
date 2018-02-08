@@ -1,0 +1,38 @@
+*, *:before, *:after {
+    box-sizing: border-box;
+    border : 1px solid black;
+}
+
+#titre {
+    align-items: center;
+    text-align:center;
+    border: 1px solid black;
+}
+
+#canvasBackground {
+    min-width : 380px;
+    min-height : 380px;
+    padding : 10px;
+}
+
+#canvasAnimation {
+    position : absolute;
+    min-width : 380px;
+    min-height : 380px;
+    padding : 10px;
+}
+canvas {
+    display : block;
+}
+section {
+    display : flex;
+}
+nav {
+    min-width : 50px;
+    min-height : 50px;
+    background-color : red;
+}
+
+img {
+    display : none;
+}
