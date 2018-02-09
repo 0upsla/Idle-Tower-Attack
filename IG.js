@@ -1,15 +1,15 @@
 //background canvas variables
 var background = document.getElementById('background');
 var ctxBackground = background.getContext('2d');
-var width = ctxBackground.canvas.width = 360;
-var height = ctxBackground.canvas.height = 360;
+var width = ctxBackground.canvas.width = 400;
+var height = ctxBackground.canvas.height = 400;
 
 
 //lists of visual elements
 var animation = document.getElementById('animation');
 var ctxAnimation = animation.getContext('2d');
-var width = ctxAnimation.canvas.width = 360;
-var height = ctxAnimation.canvas.height = 360;
+var width = ctxAnimation.canvas.width = 400;
+var height = ctxAnimation.canvas.height = 400;
 
 
 //utilities
@@ -25,8 +25,8 @@ class Square{
     constructor(X,Y) {
         this.X=X;
         this.Y=Y;
-        this.listOfElements = [];
         this.isPartOfPath = false;
+        this.direction = 3;
     }
 
     makePath(){
@@ -125,11 +125,20 @@ class Plane{
         this.node = path.nodes[0];
         this.image = document.getElementById("paperplane");
         this.speed = 1;
+        this.direction = this.node.direction;
     }
 
     draw(){
-        ctxAnimation.drawImage(this.image,0,35);
+        ctxAnimation.translate(25,75);
+        ctxAnimation.rotate(Math.PI*5/2);
+        ctxAnimation.drawImage(this.image,-25,-25,50,50);
+        ctxAnimation.rotate(-Math.PI*5/2);
+        ctxAnimation.translate(-25,-75);
     }        
+
+    fly(){
+
+    }
 }
 var plane = new Plane(currentPath);
 let stillFly = true;
@@ -137,7 +146,10 @@ while(stillFly){
     ctxAnimation.clearRect(0,0,width,height);
     plane.draw();
     plane.fly();
-    if(currentPath.nodes.indexOf(plane.node)==-1){
+    console.log(currentPath.nodes.indexOf(plane.node));
+    console.log(currentPath.nodes);
+    console.log(plane.node);
+    if(currentPath.nodes.indexOf(plane.node)!=-1){
            stillFly =false;
     }
 }
