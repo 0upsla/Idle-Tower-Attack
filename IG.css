@@ -1,7 +1,5 @@
-<<<<<<< HEAD
 *, *:before, *:after {
     box-sizing: border-box;
-    border : 1px solid black;
 }
 
 #titre {
@@ -31,39 +29,18 @@ section {
 nav {
     min-width : 50px;
     min-height : 50px;
-    background-color : red;
+    background-color : rgba(164,164,242,0.5);;
+}
+button {
+    width : 130px;
+    height : 30px;
+    background-color : rgba(60,60,200,1);
+}
+.upgradeDiv {
+    max-width : 200px;
+    min-width : 100px;
+    max-height : 250px;
+    min-height : 70px;
+    background-color : rgba(50,50,180,1);
 }
 
-img {
-    display : none;
-}
-=======
-*, *:before, *:after {
-    box-sizing: border-box;
-    border : 1px solid black;
-}
-
-#titre {
-    align-items: center;
-    text-align:center;
-    border: 1px solid black;
-}
-
-#canvas {
-    min-width : 310px;
-    min-height : 310px;
-    padding : 10px;
-}
-canvas {
-    display : block;
-
-}
-section {
-    display : flex;
-}
-nav {
-    min-width : 50px;
-    min-height : 50px;
-    background-color : red;
-}
->>>>>>> f8f95c79c75f4e9cb77ff0cf479da541850377f0
