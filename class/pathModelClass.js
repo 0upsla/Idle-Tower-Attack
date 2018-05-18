@@ -4,6 +4,9 @@ class pathModel {
 	 * When applied to a path, we make the change needed
 	 */
 	constructor(instructions,direction, endLeftCorner){
+		//Instruction is an array composed of :
+		//"r", "l" for right and left turn, and numbers for straight segment
+		//(number = lenght of the straight segment)
 		this.instructions = instructions;
 		this.direction = direction;
 		this.startLeftCorner = true;
@@ -22,12 +25,11 @@ class pathModel {
 				lastPath.orientation, false, !this.endLeftCorner);
 			//add the segments to the path
 			instruction.forEach(addInstruction(newPath,instruction, true));
-		
 		}
 	}
 	//Add a new segment corresping to the instruction
 	addInstruction(path,instruction,invert){
-		if(invert){
+		if(invert){ // We have to invert the segment
 			switch(instruction){
 				case "l" :
 					let seg = new rightTurnSegment(path);
@@ -38,7 +40,7 @@ class pathModel {
 				default :
 					let seg = new straightSegment(instruction, path);
 			}
-		}else {
+		}else { // Do no invert the segment
 			switch(instruction){
 				case "r" :
 					let seg = new rightTurnSegment(path);
