@@ -16,6 +16,7 @@ class PathSegment {
 
 	addToPath(path){
 		//add this segment to the specified path
+		this.path = path;
 		this.posX = path.posX;
 		this.posY = path.posY;
 		this.calculateEndPos();
@@ -29,8 +30,8 @@ class PathSegment {
 }
 
 class straightSegment {
-	constructor ( orientation, length, path){
-		super(STRAIGHT, orientation, length, path);
+	constructor (length, path){
+		super(STRAIGHT, path.orientation, length, path);
 	}
 
 	calculateEndPos(){
@@ -55,8 +56,8 @@ class straightSegment {
 }
 
 class leftTurnSegment {
-	constructor (orientation, path){
-		super(LEFT, orientation, 3/2, path);
+	constructor (path){
+		super(LEFT, path.orientation, 3/2, path);
 		//Starting angle
 		this.startAngle = Math.PI*this.orientation/2;
 		
@@ -142,8 +143,8 @@ class leftTurnSegment {
 }
 
 class rightTurnSegment {
-	constructor(orientation, path){
-		super(RIGHT,orientation, 1*3/2, path);
+	constructor(path){
+		super(RIGHT,path.orientation, 1*3/2, path);
 		//Starting angle
 		this.startAngle = Math.PI*this.orientation/2;
 	}

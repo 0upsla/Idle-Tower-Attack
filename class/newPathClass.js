@@ -5,17 +5,22 @@
  */
 class Path {
 	
-	constructor(posX, posY, direction, orientation){
+	constructor(posX, posY, direction, orientation, startLeftCorner, endLeftCorner){
 		this.segments = [];
 		this.length = [];
 		//Position of the path on the canvas
 		this.posX = posX;
 		this.posY = posY;
+		//Side of the corner on which we start
+		this.startLeftCorner = startLeftCorner;
+		//Side of the corner on which we end
+		this.endLeftCorner = endLeftCorner;
 		//direction is the general direction of the whole path
 		//direction is Left, Straight or Right (-1,0 or 1);
 		this.direction = direction;
-		//Orientation is rapport the cardinals 
+		//Orientation is rapport to the cardinals 
 		//Nort = 0, East = 1, South = 2, West = 3;
+		//When the path is over, this will be the direction at the end.
 		this.orientation = orientation;
 		//list of the different Areas, AKA where towers in/out of range
 		this.listOfAreas = [];
@@ -25,7 +30,7 @@ class Path {
 	addSegment(segmentToAdd){
 		this.length += segmentToAdd.length;
 		this.segments.push(segmentToAdd);
-		this.orientation = (this.orientation + segmentToAdd.direction) % 4;
+		this.orientation = (this.orientation + segmentToAdd.direction)% 4;
 		this.posX = segmentToAdd.endPosX;
 		this.posY = segmentToAdd.endPosY;
 	}
