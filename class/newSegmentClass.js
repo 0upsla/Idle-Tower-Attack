@@ -40,8 +40,8 @@ class straightSegment {
 	
 	drawSegment(){
 		ctxBackground.beginPath();
-		ctxBackground.moveTo(this.posX, this.posY);
-		ctxBackground.lineTo(this.endPosX, this.endPosY);
+		ctxBackground.moveTo(this.posX*CELLSIZE, this.posY*CELLSIZE);
+		ctxBackground.lineTo(this.endPosX*CELLSIZE, this.endPosY*CELLSIZE);
 		ctx.Background.stroke();
 	}
 
@@ -56,7 +56,7 @@ class straightSegment {
 
 class leftTurnSegment {
 	constructor (orientation, path){
-		super(LEFT, orientation, CELLSIZE*3/2, path);
+		super(LEFT, orientation, 3/2, path);
 		//Starting angle
 		this.startAngle = Math.PI*this.orientation/2;
 		
@@ -65,22 +65,22 @@ class leftTurnSegment {
 	calculateEndPos(){
 		if(this.orientation % 2 == 0){
 			if(this.orientation < 2 ){ // North
-				this.endPosX = this.posX - CELLSIZE;
-				this.endPosY = this.posY - CELLSIZE;
+				this.endPosX = this.posX - 1;
+				this.endPosY = this.posY - 1;
 			} else { // South
-				this.endPosX = this.posX + CELLSIZE;
-				this.endPosY = this.posY + CELLSIZE;
+				this.endPosX = this.posX + 1;
+				this.endPosY = this.posY + 1;
 			}
 			//calculate the center of rotation
 			this.centerX = this.endPosX;
 			this.centerY = this.posY;
 		}else{
 			if(this.orientation < 2){// East
-				this.endPosX = this.posX + CELLSIZE;
-				this.endPosY = this.posY - CELLSIZE;
+				this.endPosX = this.posX + 1;
+				this.endPosY = this.posY - 1;
 			} else {// West
-				this.endPosX = this.posX - CELLSIZE;
-				this.endPosY = this.posY + CELLSIZE;
+				this.endPosX = this.posX - 1;
+				this.endPosY = this.posY + 1;
 			}
 			//calculate the center or rotation
 			this.centerX = this.posX;
@@ -96,7 +96,7 @@ class leftTurnSegment {
 	}
 
 	getPositionXY(advance){
-		let third = CELLSIZE/2;
+		let third = 1/2;
 		let pos = [this.posX,this.posY];
 		let signs = [Math.sign(this.posX-this.endPosX),Math.sign(this.posY-this.endPosY)];
 
@@ -143,7 +143,7 @@ class leftTurnSegment {
 
 class rightTurnSegment {
 	constructor(orientation, path){
-		super(RIGHT,orientation, CELLSIZE*3/2, path);
+		super(RIGHT,orientation, 1*3/2, path);
 		//Starting angle
 		this.startAngle = Math.PI*this.orientation/2;
 	}
@@ -151,21 +151,21 @@ class rightTurnSegment {
 	calculateEndPos(){
 		if(this.orientation%2 == 0){
 			if(this.orientation < 2){// North
-				this.endPosX = this.posX + CELLSIZE;
-				this.endPosY = this.posY - CELLSIZE;
+				this.endPosX = this.posX + 1;
+				this.endPosY = this.posY - 1;
 			} else { // South
-				this.endPosX = this.posX - CELLSIZE;
-				this.endPosY = this.posY + CELLSIZE;
+				this.endPosX = this.posX - 1;
+				this.endPosY = this.posY + 1;
 			}
 			this.centerX = this.endPosX;
 			this.centerY = this.posY;
 		} else {
 			if(this.orientation < 2){// East
-				this.endPosX = this.posX + CELLSIZE;
-				this.endPosY = this.posY + CELLSIZE;
+				this.endPosX = this.posX + 1;
+				this.endPosY = this.posY + 1;
 			} else {// West
-				this.endPosX = this.posX - CELLSIZE;
-				this.endPosY = this.posY - CELLSIZE;
+				this.endPosX = this.posX - 1;
+				this.endPosY = this.posY - 1;
 			}
 			this.centerX = this.posX;
 			this.centerY = this.endPosY;
@@ -180,7 +180,7 @@ class rightTurnSegment {
 	}
 
 	getPositionXY(advance){
-		let third = CELLSIZE/2;
+		let third = 1/2;
 		let pos = [this.posX,this.posY];
 		let signs = [Math.sign(this.posX-this.endPosX),Math.sign(this.posY-this.endPosY)];
 
