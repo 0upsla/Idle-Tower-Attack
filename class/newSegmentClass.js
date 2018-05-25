@@ -37,7 +37,6 @@ class StraightSegment extends PathSegment{
 	calculateEndPos(){
 		this.endPosX = this.posX + ((2-this.orientation)%2)*this.length;
 		this.endPosY = this.posY + ((this.orientation -1 )%2)*this.length;
-		console.log(this.endPosX,this.endPosY);
 	}
 	
 	drawSegment(){

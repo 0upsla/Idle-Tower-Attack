@@ -1,17 +1,28 @@
 
 //indicators
 //TODO make a prototype for indicators
+let indicatorDiv = document.getElementById('indicators');
 let gold = 0;
-let goldIndicator = document.getElementById('gold');
+let goldIndicator = document.createElement('div');
 let planeSpeed = 5;
-let planeSpeedIndicator = document.getElementById('planeSpeed');
+let planeSpeedIndicator = document.createElement('div'); 
 let planeLimit = 10000;
-let planeLimitIndicator = document.getElementById('planeLimit');
+let planeLimitIndicator =  document.createElement('div'); 
 let planeLimitPrice = 0;
 let autoLauncherTimer = 1000;
-let autoLauncherTimerIndicator = document.getElementById('autoLauncherTimer');
+let autoLauncherTimerIndicator =  document.createElement('div'); 
 let autoLauncherMultiply = 1;
-let planesIndicator = document.getElementById('planes');
+let planesIndicator =  document.createElement('div'); 
+/*
+indicatorDiv.appendChild(goldIndicator);
+indicatorDiv.appendChild(planeSpeedIndicator);
+indicatorDiv.appendChild(planeLimitIndicator);
+indicatorDiv.appendChild(autoLauncherTimerIndicator);
+indicatorDiv.appendChild(planesIndicator);
+*/
+let lvlInception = 0;
+let lvlInceptionIndicator = document.createElement('div');
+indicatorDiv.appendChild(lvlInceptionIndicator);
 function autoLauncher(){
     autoLaunchBTN.onclick = function(){
 			autoLauncherTimer *= 0.9;
@@ -41,12 +52,20 @@ function launchPlane(){
 
 //button evenements
 //get the buttons
+let lvlInceptionBTN = document.getElementById("lvlInceptionBTN");
 let planeLaunchBTN = document.getElementById("planeLaunchBTN");
 let fasterPlanesBTN = document.getElementById("fasterPlanesBTN");
 let morePlanesBTN = document.getElementById("morePlanesBTN");
 let autoLaunchBTN = document.getElementById("autoLaunchBTN");
 
 //assign events
+lvlInceptionBTN.onclick = function(){
+	NBlvl*= (lvlInception%3)+2;
+	CELLSIZE = SIZE/(NBCELLPATH*NBlvl);
+	drawBackGround();
+	lvlInception++;
+	updateIndicator();
+};
 planeLaunchBTN.onclick = launchPlane;
 fasterPlanesBTN.onclick = function(){planeSpeed++};
 morePlanesBTN.onclick = function(){
@@ -66,4 +85,5 @@ function updateIndicator(){
     planesIndicator.innerHTML = "Planes : " + planes.length + "/" + planeLimit;
     planeSpeedIndicator.innerHTML = "Speed : " + planeSpeed;
     autoLauncherTimerIndicator.innerHTML = "Timer for launch : " + autoLauncherTimer;
+	lvlInceptionIndicator.innerHTML = "lvl of Inception : " + lvlInception;
 };

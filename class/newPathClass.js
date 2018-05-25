@@ -40,7 +40,6 @@ class Path {
 		ctxBackground.strokeStyle  ='rgba(0,0,0,0.5)';
 		this.segments.forEach(function(seg){
 			seg.drawSegment();	
-			console.log(seg.direction,seg.posX,seg.posY,seg.endPosX,seg.endPosY);
 		});
 		ctxBackground.lineWidth = 0.6*CELLSIZE;
 		ctxBackground.strokeStyle  = roadPattern;

@@ -23,6 +23,8 @@
 :$
 :r %:h\function\fLoadImage.js
 :$
+:r %:h\function\fDrawBackGround.js
+:$
 :r %:h\function\fMainLoop.js
 :$
 :r %:h\function\fCreatePath.js

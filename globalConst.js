@@ -4,8 +4,8 @@
 //global const
 let SIZE = 600;
 let NBCELLPATH = 8;
-let NBPATH = 1;
-let CELLSIZE=SIZE/(NBCELLPATH*NBPATH);
+let NBlvl = 1;
+let CELLSIZE=SIZE/(NBCELLPATH*NBlvl);
 let FRAMERATE = 30;
 let BASESPEED = CELLSIZE/2500;
 let mainLoopStart = Date.now();

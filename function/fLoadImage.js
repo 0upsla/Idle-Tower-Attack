@@ -7,8 +7,6 @@ function loadImage(){
 function getGrassTexture(){
     grassTexture.onload = function() {//when the texture is loaded
         grassPattern =ctxBackground.createPattern(grassTexture, "repeat");
-        ctxBackground.fillStyle=grassPattern;
-        ctxBackground.fillRect(0,0,SIZE,SIZE);
         getRoadTexture();//call the road texture when hte grass one is ready
     }
     grassTexture.src = "img/grass.jpg";
@@ -17,10 +15,6 @@ function getGrassTexture(){
 function getRoadTexture(){
     roadTexture.onload = function() {//when texture is loaded
         roadPattern =ctxBackground.createPattern(roadTexture, "repeat");
-		//Draw the paths
-		for(let i=0; i< paths.length;i++){
-			paths[i].drawPath();
-		}
         getTowerImage();
     }
     roadTexture.src = "img/road.jpg";
@@ -28,11 +22,7 @@ function getRoadTexture(){
 
 function getTowerImage(){
     towerImage.onload = function(){
-        for(let i = 0; i< paths.length; i++){
-			for( let j = 0; j<paths[i].towers.length;j++ ){
-				paths[i].towers[j].draw();
-			}
-        }
+		drawBackGround();
         console.log("towers drawn");
 		getPlaneImage();
     }

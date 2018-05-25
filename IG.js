@@ -5,8 +5,8 @@
 //global const
 let SIZE = 600;
 let NBCELLPATH = 8;
-let NBPATH = 2;
-let CELLSIZE=SIZE/(NBCELLPATH*NBPATH);
+let NBlvl = 1;
+let CELLSIZE=SIZE/(NBCELLPATH*NBlvl);
 let FRAMERATE = 30;
 let BASESPEED = CELLSIZE/2500;
 let mainLoopStart = Date.now();
@@ -33,17 +33,28 @@ let bullets = [];
 
 //indicators
 //TODO make a prototype for indicators
+let indicatorDiv = document.getElementById('indicators');
 let gold = 0;
-let goldIndicator = document.getElementById('gold');
+let goldIndicator = document.createElement('div');
 let planeSpeed = 5;
-let planeSpeedIndicator = document.getElementById('planeSpeed');
+let planeSpeedIndicator = document.createElement('div'); 
 let planeLimit = 10000;
-let planeLimitIndicator = document.getElementById('planeLimit');
+let planeLimitIndicator =  document.createElement('div'); 
 let planeLimitPrice = 0;
 let autoLauncherTimer = 1000;
-let autoLauncherTimerIndicator = document.getElementById('autoLauncherTimer');
+let autoLauncherTimerIndicator =  document.createElement('div'); 
 let autoLauncherMultiply = 1;
-let planesIndicator = document.getElementById('planes');
+let planesIndicator =  document.createElement('div'); 
+/*
+indicatorDiv.appendChild(goldIndicator);
+indicatorDiv.appendChild(planeSpeedIndicator);
+indicatorDiv.appendChild(planeLimitIndicator);
+indicatorDiv.appendChild(autoLauncherTimerIndicator);
+indicatorDiv.appendChild(planesIndicator);
+*/
+let lvlInception = 0;
+let lvlInceptionIndicator = document.createElement('div');
+indicatorDiv.appendChild(lvlInceptionIndicator);
 function autoLauncher(){
     autoLaunchBTN.onclick = function(){
 			autoLauncherTimer *= 0.9;
@@ -73,12 +84,20 @@ function launchPlane(){
 
 //button evenements
 //get the buttons
+let lvlInceptionBTN = document.getElementById("lvlInceptionBTN");
 let planeLaunchBTN = document.getElementById("planeLaunchBTN");
 let fasterPlanesBTN = document.getElementById("fasterPlanesBTN");
 let morePlanesBTN = document.getElementById("morePlanesBTN");
 let autoLaunchBTN = document.getElementById("autoLaunchBTN");
 
 //assign events
+lvlInceptionBTN.onclick = function(){
+	NBlvl*= (lvlInception%3)+2;
+	CELLSIZE = SIZE/(NBCELLPATH*NBlvl);
+	drawBackGround();
+	lvlInception++;
+	updateIndicator();
+};
 planeLaunchBTN.onclick = launchPlane;
 fasterPlanesBTN.onclick = function(){planeSpeed++};
 morePlanesBTN.onclick = function(){
@@ -98,6 +117,7 @@ function updateIndicator(){
     planesIndicator.innerHTML = "Planes : " + planes.length + "/" + planeLimit;
     planeSpeedIndicator.innerHTML = "Speed : " + planeSpeed;
     autoLauncherTimerIndicator.innerHTML = "Timer for launch : " + autoLauncherTimer;
+	lvlInceptionIndicator.innerHTML = "lvl of Inception : " + lvlInception;
 };
 //background canvas variables
 let background = document.getElementById('background');
@@ -164,7 +184,6 @@ class Path {
 		ctxBackground.strokeStyle  ='rgba(0,0,0,0.5)';
 		this.segments.forEach(function(seg){
 			seg.drawSegment();	
-			console.log(seg.direction,seg.posX,seg.posY,seg.endPosX,seg.endPosY);
 		});
 		ctxBackground.lineWidth = 0.6*CELLSIZE;
 		ctxBackground.strokeStyle  = roadPattern;
@@ -224,8 +243,8 @@ class Plane {
         }//for a left turn
         else if (this.currentSegment.type == "leftTurn"){
             //move the canva to the center of rotation
-            ctxAnimation.translate(this.currentSegment.centerX,
-                    this.currentSegment.centerY);
+            ctxAnimation.translate(this.currentSegment.center[0],
+                    this.currentSegment.center[1]);
             //Rotate the canva depends on the orientation of the plane
             //and on the advance of the plane
             //as turn-segment have a length of 75, we need to divide by 2*75 = 150
@@ -236,8 +255,8 @@ class Plane {
         }//for a right turn
         else {
             //move the canva to the center of rotation
-            ctxAnimation.translate(this.currentSegment.centerX,
-                    this.currentSegment.centerY);
+            ctxAnimation.translate(this.currentSegment.center[0],
+                    this.currentSegment.center[1]);
             //Rotate the canva depends on the orientation of the plane
             //and on the advance of the plane
             //as turn-segment have a length of 75, we need to divide by 2*75 = 150
@@ -454,7 +473,6 @@ class StraightSegment extends PathSegment{
 	calculateEndPos(){
 		this.endPosX = this.posX + ((2-this.orientation)%2)*this.length;
 		this.endPosY = this.posY + ((this.orientation -1 )%2)*this.length;
-		console.log(this.endPosX,this.endPosY);
 	}
 	
 	drawSegment(){
@@ -659,7 +677,7 @@ class PathModel {
 
 	createPath(lastPath){
 		let newPath;
-		if(lastPath.startLeftCorner){
+		if(lastPath.endLeftCorner){
 			newPath = new Path(lastPath.posX, lastPath.posY, this.direction,
 				lastPath.orientation, true, this.endLeftCorner);
 			console.log(newPath);
@@ -668,7 +686,7 @@ class PathModel {
 				this.addInstruction(newPath,element, false);
 			},this);
 		} else {
-			newPath = (lastPath.posX, lastPath.posY, -this.direction,
+			newPath = new Path(lastPath.posX, lastPath.posY, -this.direction,
 				lastPath.orientation, false, !this.endLeftCorner);
 			console.log(newPath);
 			//add the segments to the path
@@ -851,8 +869,6 @@ function loadImage(){
 function getGrassTexture(){
     grassTexture.onload = function() {//when the texture is loaded
         grassPattern =ctxBackground.createPattern(grassTexture, "repeat");
-        ctxBackground.fillStyle=grassPattern;
-        ctxBackground.fillRect(0,0,SIZE,SIZE);
         getRoadTexture();//call the road texture when hte grass one is ready
     }
     grassTexture.src = "img/grass.jpg";
@@ -861,10 +877,6 @@ function getGrassTexture(){
 function getRoadTexture(){
     roadTexture.onload = function() {//when texture is loaded
         roadPattern =ctxBackground.createPattern(roadTexture, "repeat");
-		//Draw the paths
-		for(let i=0; i< paths.length;i++){
-			paths[i].drawPath();
-		}
         getTowerImage();
     }
     roadTexture.src = "img/road.jpg";
@@ -872,11 +884,7 @@ function getRoadTexture(){
 
 function getTowerImage(){
     towerImage.onload = function(){
-        for(let i = 0; i< paths.length; i++){
-			for( let j = 0; j<paths[i].towers.length;j++ ){
-				paths[i].towers[j].draw();
-			}
-        }
+		drawBackGround();
         console.log("towers drawn");
 		getPlaneImage();
     }
@@ -896,6 +904,22 @@ function getPlaneImage(){
 	planeImage.src = "img/paperplane.png";
 }
 
+function drawBackGround(){
+	//Check if textures are loaded
+	//TODO
+	//Draw grass
+    ctxBackground.fillStyle=grassPattern;
+    ctxBackground.fillRect(0,0,SIZE,SIZE);
+	//Draw Road
+	paths.forEach(function(path){
+		path.drawPath();
+		//Draw the path towers
+		path.towers.forEach(function(tower){
+			tower.draw();
+		});
+	});
+	
+}
 
 function mainLoop(){
     //TODO Main loop of the game
@@ -941,20 +965,38 @@ function createPath(i){
 	} else {
 		lastPath = paths[paths.length-1];
 	}
-	path = pathModels.right[0].createPath(lastPath);
+	path = pathModels.left[i].createPath(lastPath);
 	return path;
 }
-
+let currentModel;
 function generatePathModels(){
 	let pathModel;
+	// RIGHT TRUE
+	pathModel = new PathModel([2,"r",1,"r","l",1,"l",1,"l",3,"r",1,"r",5],RIGHT,true);
+	pathModels.left.push(pathModel);
 	pathModel = new PathModel([6,"r",2,"r","r","l",2,"l",2,"l",4,"r"],RIGHT,true);
-	pathModels.right.push(pathModel);
+	pathModels.left.push(pathModel);
+	//RIGHT FALSE
+	pathModel = new PathModel(["r",2,"l",2,"l","l","r","r",2,"r",4,"r",4,"l"],RIGHT,false);
+	pathModels.left.push(pathModel);
+	pathModel = new PathModel([6,"r",4,"r","r",2,"l","l",1,"r","l",1],RIGHT,false);
+	pathModels.left.push(pathModel);
+	// LEFT TRUE IS IMPOSSIBLE
+	// LEFT FALSE
 	pathModel = new PathModel([4,"r",2,"r","r","l","l",2,"l",4,"l",6],LEFT,false);
 	pathModels.left.push(pathModel);
-	pathModel = new PathModel(["l",4,"r","r",4,"l",2,"l","l",1,"r",1,"r",1,"l",1],LEFT,false);
+	pathModel = new PathModel(["r",4,"l",1,"l","r",1,"l","l",2,"r","r",2,"l"],LEFT,false);
 	pathModels.left.push(pathModel);
-	pathModel = new PathModel(["l",2,"r","r",2,"l","l",4,"r","r",4,"l"],STRAIGHT,false);
-	pathModels.straight.push(pathModel);
+	// STRAIGHT TRUE
+	pathModel = new PathModel(["r",2,"l","l",2,"r","r",4,"l","l",4,"r"],STRAIGHT,true);
+	pathModels.left.push(pathModel);
+	pathModel = new PathModel([5,"r","r",3,"l",2,"l",1,"l","r",1,"l",2,"r"],STRAIGHT,true);
+	pathModels.left.push(pathModel);
+	// STRAIGHT FALSE
+	pathModel = new PathModel([6,"r","r",4,"l",2,"l","l","r",1,"r","l",1],STRAIGHT,false);
+	pathModels.left.push(pathModel);
+	pathModel = new PathModel([2,"r","r","l",2,"l","l",1,"r","l",1,"r","r",4,"l"],STRAIGHT,false);
+	pathModels.left.push(pathModel);
 }
 
 
@@ -962,7 +1004,10 @@ function init(){
     //TODO make init
 	loadImage();
 	generatePathModels();
-	paths.push(createPath(1));
+	paths.push(createPath(0));
+	paths.push(createPath(5));
+	paths.push(createPath(3));
+	paths.push(createPath(2));
 	console.log("end of init");
 }
 init();

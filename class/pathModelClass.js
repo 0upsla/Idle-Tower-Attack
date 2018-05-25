@@ -15,7 +15,7 @@ class PathModel {
 
 	createPath(lastPath){
 		let newPath;
-		if(lastPath.startLeftCorner){
+		if(lastPath.endLeftCorner){
 			newPath = new Path(lastPath.posX, lastPath.posY, this.direction,
 				lastPath.orientation, true, this.endLeftCorner);
 			console.log(newPath);
@@ -24,7 +24,7 @@ class PathModel {
 				this.addInstruction(newPath,element, false);
 			},this);
 		} else {
-			newPath = (lastPath.posX, lastPath.posY, -this.direction,
+			newPath = new Path(lastPath.posX, lastPath.posY, -this.direction,
 				lastPath.orientation, false, !this.endLeftCorner);
 			console.log(newPath);
 			//add the segments to the path
