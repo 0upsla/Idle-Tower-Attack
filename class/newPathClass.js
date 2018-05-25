@@ -7,7 +7,7 @@ class Path {
 	
 	constructor(posX, posY, direction, orientation, startLeftCorner, endLeftCorner){
 		this.segments = [];
-		this.length = [];
+		this.length = 0;
 		//Position of the path on the canvas
 		this.posX = posX;
 		this.posY = posY;
@@ -23,14 +23,14 @@ class Path {
 		//When the path is over, this will be the direction at the end.
 		this.orientation = orientation;
 		//list of the different Areas, AKA where towers in/out of range
-		this.listOfAreas = [];
+		this.listOfAreas = new ListOfArea(this);
 		this.towers = [];
 	}
 
 	addSegment(segmentToAdd){
 		this.length += segmentToAdd.length;
 		this.segments.push(segmentToAdd);
-		this.orientation = (this.orientation + segmentToAdd.direction)% 4;
+		this.orientation = (this.orientation + segmentToAdd.direction+4)% 4;
 		this.posX = segmentToAdd.endPosX;
 		this.posY = segmentToAdd.endPosY;
 	}
@@ -40,6 +40,7 @@ class Path {
 		ctxBackground.strokeStyle  ='rgba(0,0,0,0.5)';
 		this.segments.forEach(function(seg){
 			seg.drawSegment();	
+			console.log(seg.direction,seg.posX,seg.posY,seg.endPosX,seg.endPosY);
 		});
 		ctxBackground.lineWidth = 0.6*CELLSIZE;
 		ctxBackground.strokeStyle  = roadPattern;

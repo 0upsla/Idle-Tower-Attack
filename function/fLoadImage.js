@@ -19,7 +19,7 @@ function getRoadTexture(){
         roadPattern =ctxBackground.createPattern(roadTexture, "repeat");
 		//Draw the paths
 		for(let i=0; i< paths.length;i++){
-			paths[i].draw();
+			paths[i].drawPath();
 		}
         getTowerImage();
     }

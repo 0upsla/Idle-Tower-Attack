@@ -29,7 +29,7 @@ class PathSegment {
 	}
 }
 
-class straightSegment {
+class StraightSegment extends PathSegment{
 	constructor (length, path){
 		super(STRAIGHT, path.orientation, length, path);
 	}
@@ -37,13 +37,14 @@ class straightSegment {
 	calculateEndPos(){
 		this.endPosX = this.posX + ((2-this.orientation)%2)*this.length;
 		this.endPosY = this.posY + ((this.orientation -1 )%2)*this.length;
+		console.log(this.endPosX,this.endPosY);
 	}
 	
 	drawSegment(){
 		ctxBackground.beginPath();
 		ctxBackground.moveTo(this.posX*CELLSIZE, this.posY*CELLSIZE);
 		ctxBackground.lineTo(this.endPosX*CELLSIZE, this.endPosY*CELLSIZE);
-		ctx.Background.stroke();
+		ctxBackground.stroke();
 	}
 
 	getPositionXY(advance){
@@ -55,7 +56,7 @@ class straightSegment {
 	}
 }
 
-class leftTurnSegment {
+class LeftTurnSegment extends PathSegment{
 	constructor (path){
 		super(LEFT, path.orientation, 3/2, path);
 		//Starting angle
@@ -91,7 +92,7 @@ class leftTurnSegment {
 	
 	drawSegment(){
 		ctxBackground.beginPath();
-		ctxBackground.arc(this.centerX, this.centerY, CELLSIZE,
+		ctxBackground.arc(this.centerX*CELLSIZE, this.centerY*CELLSIZE, CELLSIZE,
 							this.startAngle,this.startAngle-Math.PI/2, true);	
 		ctxBackground.stroke();
 	}
@@ -142,11 +143,11 @@ class leftTurnSegment {
 
 }
 
-class rightTurnSegment {
+class RightTurnSegment extends PathSegment{
 	constructor(path){
-		super(RIGHT,path.orientation, 1*3/2, path);
+		super(RIGHT,path.orientation, 3/2, path);
 		//Starting angle
-		this.startAngle = Math.PI*this.orientation/2;
+		this.startAngle = Math.PI*(this.orientation-2)/2;
 	}
 
 	calculateEndPos(){
@@ -175,8 +176,8 @@ class rightTurnSegment {
 	
 	drawSegment(){
 		ctxBackground.beginPath();
-		ctxBackground.arc(this.centerX,this.centerY,CELLSIZE,
-							this.startAngle,this.startAngle+Math.PI/2,true);
+		ctxBackground.arc(this.centerX*CELLSIZE,this.centerY*CELLSIZE,CELLSIZE,
+							this.startAngle,this.startAngle+Math.PI/2,false);
 		ctxBackground.stroke();
 	}
 

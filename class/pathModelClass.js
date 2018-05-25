@@ -1,4 +1,4 @@
-class pathModel {
+class PathModel {
 	/*
 	 * At the construction, all models point North and start at the bottom left corner
 	 * When applied to a path, we make the change needed
@@ -16,40 +16,48 @@ class pathModel {
 	createPath(lastPath){
 		let newPath;
 		if(lastPath.startLeftCorner){
-			newPath = (lastPath.posX, lastPath.posY, this.direction,
+			newPath = new Path(lastPath.posX, lastPath.posY, this.direction,
 				lastPath.orientation, true, this.endLeftCorner);
+			console.log(newPath);
 			//add the segments to the path
-			instruction.forEach(addInstruction(newPath,instruction, false));
+			this.instructions.forEach(function(element){
+				this.addInstruction(newPath,element, false);
+			},this);
 		} else {
 			newPath = (lastPath.posX, lastPath.posY, -this.direction,
 				lastPath.orientation, false, !this.endLeftCorner);
+			console.log(newPath);
 			//add the segments to the path
-			instruction.forEach(addInstruction(newPath,instruction, true));
+			this.instructions.forEach(function(element){
+				this.addInstruction(newPath,element, true);
+			},this);
 		}
+		return newPath;
 	}
 	//Add a new segment corresping to the instruction
 	addInstruction(path,instruction,invert){
+		let seg;
 		if(invert){ // We have to invert the segment
 			switch(instruction){
 				case "l" :
-					let seg = new rightTurnSegment(path);
+					seg = new RightTurnSegment(path);
 					break;
 				case "r" :
-					let seg = new leftTurnSegment(path);
+					seg = new LeftTurnSegment(path);
 					break;
 				default :
-					let seg = new straightSegment(instruction, path);
+					seg = new StraightSegment(instruction, path);
 			}
 		}else { // Do no invert the segment
 			switch(instruction){
 				case "r" :
-					let seg = new rightTurnSegment(path);
+					seg = new RightTurnSegment(path);
 					break;
 				case "l" :
-					let seg = new leftTurnSegment(path);
+					seg = new LeftTurnSegment(path);
 					break;
 				default :
-					let seg = new straightSegment(instruction, path);
+				 	seg = new StraightSegment(instruction, path);
 			}
 		}
 	}

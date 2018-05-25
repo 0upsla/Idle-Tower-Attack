@@ -5,17 +5,21 @@
 //global const
 let SIZE = 600;
 let NBCELLPATH = 8;
-let NBPATH = 1;
+let NBPATH = 2;
 let CELLSIZE=SIZE/(NBCELLPATH*NBPATH);
 let FRAMERATE = 30;
 let BASESPEED = CELLSIZE/2500;
 let mainLoopStart = Date.now();
 let mainLoopDiff = FRAMERATE; 
-//direction const
+//orientation const
 let NORTH = 0;
 let EAST = 1;
 let SOUTH = 2;
 let WEST = 3;
+//direction const
+let LEFT = -1;
+let STRAIGHT = 0;
+let RIGHT = 1;
 //global arrays
 let pathModels = {
 	straight : [],
@@ -118,113 +122,61 @@ let roadPattern;
 let towerImage = new Image();
 let planeImage = new Image();
 
+/*
+ *Path is the class for the path of the planes.
+ *It is the most basic map object
+ *It contains the towers
+ */
 class Path {
-    constructor(x,y,direction) {
-        this.segments = [];//the segments making the path
-        this.length = 0;
-        this.direction = direction;//the current direction of last part the path 
-		this.pos=[x,y];
-		this.nextPos=[x,y];
-        this.listOfAreas = new ListOfArea(this);
-		this.towers = [];
-    }
-
-    addSegment(segmentToAdd) {
-        this.length += parseInt(segmentToAdd.length);
-        this.segments.push(segmentToAdd);
-    }
 	
-    addLeftTurn(){//add a left turn, 90°
+	constructor(posX, posY, direction, orientation, startLeftCorner, endLeftCorner){
+		this.segments = [];
+		this.length = 0;
+		//Position of the path on the canvas
+		this.posX = posX;
+		this.posY = posY;
+		//Side of the corner on which we start
+		this.startLeftCorner = startLeftCorner;
+		//Side of the corner on which we end
+		this.endLeftCorner = endLeftCorner;
+		//direction is the general direction of the whole path
+		//direction is Left, Straight or Right (-1,0 or 1);
+		this.direction = direction;
+		//Orientation is rapport to the cardinals 
+		//Nort = 0, East = 1, South = 2, West = 3;
+		//When the path is over, this will be the direction at the end.
+		this.orientation = orientation;
+		//list of the different Areas, AKA where towers in/out of range
+		this.listOfAreas = new ListOfArea(this);
+		this.towers = [];
+	}
 
-        if(this.direction == NORTH){
-			this.nextPos=[this.pos[0]-CELLSIZE,this.pos[1]-CELLSIZE];
-        } else if (this.direction == SOUTH){
-			this.nextPos=[this.pos[0]+CELLSIZE,this.pos[1]+CELLSIZE];
-        } else if (this.direction == WEST){
-			this.nextPos=[this.pos[0]-CELLSIZE,this.pos[1]+CELLSIZE];
-        } else { 
-			this.nextPos=[this.pos[0]+CELLSIZE,this.pos[1]-CELLSIZE];
-        }
-        //create the new segment, fixed length of 75
-        let segment = new LeftTurnSegment( CELLSIZE*3/2, this.pos,
-                    this.nextPos,this.direction, this.length);
-        this.addSegment(segment);
-        //update the new positions of the path
-        this.pos[0] = this.nextPos[0];
-		this.pos[1] = this.nextPos[1];
-        this.direction = (this.direction+3)%4;
-        
+	addSegment(segmentToAdd){
+		this.length += segmentToAdd.length;
+		this.segments.push(segmentToAdd);
+		this.orientation = (this.orientation + segmentToAdd.direction+4)% 4;
+		this.posX = segmentToAdd.endPosX;
+		this.posY = segmentToAdd.endPosY;
+	}
+	
+	drawPath(){
+		ctxBackground.lineWidth = 0.8*CELLSIZE;
+		ctxBackground.strokeStyle  ='rgba(0,0,0,0.5)';
+		this.segments.forEach(function(seg){
+			seg.drawSegment();	
+			console.log(seg.direction,seg.posX,seg.posY,seg.endPosX,seg.endPosY);
+		});
+		ctxBackground.lineWidth = 0.6*CELLSIZE;
+		ctxBackground.strokeStyle  = roadPattern;
+		this.segments.forEach(function(seg){
+			seg.drawSegment();	
+		});
+	}
 
-    }
-    
-    addRightTurn(){//add a right turn, 90°
-
-        if(this.direction == NORTH){
-			this.nextPos=[this.pos[0]+CELLSIZE,this.pos[1]-CELLSIZE];
-        } else if (this.direction == SOUTH){
-			this.nextPos=[this.pos[0]-CELLSIZE,this.pos[1]+CELLSIZE];
-        } else if (this.direction == WEST){
-			this.nextPos=[this.pos[0]-CELLSIZE,this.pos[1]-CELLSIZE];
-        } else { 
-			this.nextPos=[this.pos[0]+CELLSIZE,this.pos[1]+CELLSIZE];
-        }
-        //create the new segment, fixed length of 75
-        let segment = new RightTurnSegment( CELLSIZE*3/2, this.pos,
-                    this.nextPos, this.direction, this.length);
-        this.addSegment(segment);
-        //update the new positions of the path
-        this.pos[0] = this.nextPos[0];
-		this.pos[1] = this.nextPos[1];
-        this.direction = (this.direction+1)%4;
-    }
-    
-    addStraight(length){//add a straight segment of given length
-        //calculate new position after new segment
-        if(this.direction == NORTH){
-            this.nextPos[1] = this.pos[1]-length;
-        } else if (this.direction == SOUTH){
-            this.nextPos[1] = this.pos[1]+length;
-        } else if (this.direction == WEST){
-            this.nextPos[0] = this.pos[0]-length;
-        } else { 
-            this.nextPos[0] = this.pos[0]+length;
-        }
-        //create the new segment
-        let segment = new LineSegment( length, this.pos, 
-					this.nextPos, this.direction, this.length);
-        this.addSegment(segment);
-        //updating the position after the new segment
-        this.pos[0] = this.nextPos[0];
-		this.pos[1] = this.nextPos[1];
-		console.log(this.pos==this.nextPos);
-
-    }
-    /**
-     *This method draw the path, by creating a path on the canvas, and stroking it
-     **/
-    draw() {
-        //First create the path a bit larger in color, to create a line around the final path
-        ctxBackground.beginPath();
-        let lineWidth = CELLSIZE*0.8;
-        ctxBackground.lineWidth=lineWidth;
-        ctxBackground.strokeStyle='rgba(0,0,0,0.5)';
-        this.segments.forEach(function(item){
-            item.drawSegment();        
-        });
-        ctxBackground.stroke();
-        //Then recreate the path, but stroke it using texture, slightly smaller
-        
-        ctxBackground.beginPath();
-        this.segments.forEach(function(item){
-            item.drawSegment();        
-        });
-        lineWidth = CELLSIZE*0.6;
-        ctxBackground.lineWidth=lineWidth;
-        ctxBackground.strokeStyle=roadPattern;
-        ctxBackground.stroke();
-    }
+	calculateAreas(){
+		globalTester.testArea(this);	
+	}
 }
-
 class Plane {
     constructor(path){
         this.speed = planeSpeed;//speed of the plane, not updated
@@ -272,8 +224,8 @@ class Plane {
         }//for a left turn
         else if (this.currentSegment.type == "leftTurn"){
             //move the canva to the center of rotation
-            ctxAnimation.translate(this.currentSegment.center[0],
-                    this.currentSegment.center[1]);
+            ctxAnimation.translate(this.currentSegment.centerX,
+                    this.currentSegment.centerY);
             //Rotate the canva depends on the orientation of the plane
             //and on the advance of the plane
             //as turn-segment have a length of 75, we need to divide by 2*75 = 150
@@ -284,8 +236,8 @@ class Plane {
         }//for a right turn
         else {
             //move the canva to the center of rotation
-            ctxAnimation.translate(this.currentSegment.center[0],
-                    this.currentSegment.center[1]);
+            ctxAnimation.translate(this.currentSegment.centerX,
+                    this.currentSegment.centerY);
             //Rotate the canva depends on the orientation of the plane
             //and on the advance of the plane
             //as turn-segment have a length of 75, we need to divide by 2*75 = 150
@@ -463,195 +415,297 @@ class Bullet {
     }
 }
 
-class PathSegment{
-    constructor(type,length,comingFrom,goingTo,orientation,position) {
-        this.type = type;//type of segment
-        this.length = length;
-        this.orientation = orientation;
-        this.comingFrom = [comingFrom[0],comingFrom[1]];
-        this.goingTo = [goingTo[0],goingTo[1]];
-		this.startingPosition = position //The position of the start of the segment on the path
-    }
-
-	drawSegment(){
-		console.log("Need to overwrite the function");
+class PathSegment {
+	constructor (direction, orientation, length, path){
+		this.direction = direction;
+		this.orientation = orientation;
+		this.length = length;
+		this.addToPath(path);
 	}
-
-	getPositionXY(advance){
-		console.log("Need to overwrite the function");
-	}
-
-}
-
-class LineSegment extends PathSegment {
-
-	constructor(length, comingFrom, goingTo, orientation, position) {
-		super("line", length, comingFrom, goingTo, orientation, position);
-	}
-
-
-	drawSegment(){
-        ctxBackground.moveTo(this.comingFrom[0],this.comingFrom[1]);
-        ctxBackground.lineTo(this.goingTo[0],this.goingTo[1]);
-	}
-
-	getPositionXY(advance){
-		let pos = [0,0]
-        pos[0] = this.comingFrom[0]+ (this.goingTo[0]-this.comingFrom[0])*
-                    advance/this.length;
-        pos[1] = this.comingFrom[1]+ (this.goingTo[1]-this.comingFrom[1])*
-                    advance/this.length;
-		return pos;
-	}
-}
-class LeftTurnSegment extends PathSegment {
-
-	constructor(length, comingFrom, goingTo, orientation, position) {
-		super("leftTurn", length, comingFrom, goingTo, orientation, position);
-        //starting angle calculated with the orientation
-        this.startAngle = Math.PI*this.orientation/2;
-        this.center = [];
-        //calculate the center of the arc to be drawn
-        if(this.orientation == 2) {
-           	this.center[0] = this.goingTo[0];
-            this.center[1] = this.comingFrom[1];
-        } else if(this.orientation == 1) {
-            this.center[0] = this.comingFrom[0];
-            this.center[1] = this.goingTo[1];
-        } else if(this.orientation == 3) {
-            this.center[0] = this.comingFrom[0];
-            this.center[1]= this.goingTo[1];
-        } else {
-            this.center[0] = this.goingTo[0];
-            this.center[1] = this.comingFrom[1];
-        }
-	}
-
-
-    drawSegment(){
-        ctxBackground.arc(this.center[0],this.center[1],
-                CELLSIZE,this.startAngle,this.startAngle-Math.PI/2, true);
-    }
-
-	getPositionXY(advance){
-		let half = CELLSIZE/2;
-		//If the orientation is north or south
-		let pos = [this.comingFrom[0],this.comingFrom[1]];
-		let directions = [Math.sign(this.goingTo[0]-this.comingFrom[0]),
-			Math.sign(this.goingTo[1]-this.comingFrom[1])];
-		if(this.orientation%2 ==0){
-		
-		if(advance < half){
-			pos[1] += advance*directions[1];
-		} else {
-			pos[1] += half*directions[1];
-		 	advance -= half;
-			if(advance < half){
-				pos[0] +=advance*directions[0];
-				pos[1] +=advance*directions[1];
-			} else {
-				pos[0] +=half*directions[0];
-				pos[1] +=half*directions[1];
-				advance -= half;
-				pos[0] +=advance*directions[0];
-			}
-		}
-		} else {
-		
-		if(advance < half){
-			pos[0] += advance*directions[0];
-		} else {
-			pos[0] += half*directions[0];
-		 	advance -= half;
-			if(advance < half){
-				pos[0] +=advance*directions[0];
-				pos[1] +=advance*directions[1];
-			} else {
-				pos[0] +=half*directions[0];
-				pos[1] +=half*directions[1];
-				advance -= half;
-				pos[1] +=advance*directions[1];
-			}
-		}
-		}
-		return pos;
-	}
-}
-class RightTurnSegment extends PathSegment {
-
-	constructor(length, comingFrom, goingTo, orientation, position) {
-		super("righTurn", length, comingFrom, goingTo, orientation, position);
-        //starting angle calculated with the orientation
-        this.startAngle = Math.PI*(this.orientation-2)/2;
-        this.center=[];
-        //calculate the center ofthe arc to be drawn
-		 
-        if(this.orientation == 3){
-            this.center[0] = this.comingFrom[0];
-            this.center[1] = this.goingTo[1];
-        } else if(this.orientation == 2){
-            this.center[0] = this.goingTo[0];
-            this.center[1] = this.comingFrom[1];
-        } else if(this.orientation == 0){
-            this.center[0] = this.goingTo[0];
-            this.center[1] = this.comingFrom[1];
-        } else {
-            this.center[0] = this.comingFrom[0];
-            this.center[1] = this.goingTo[1];
-        }
-	}
-
-
-    drawSegment(){
-        ctxBackground.arc(this.center[0],this.center[1],
-                CELLSIZE,this.startAngle,this.startAngle+Math.PI/2);
-    }
 	
+	drawSegment(){
+		//draw the segment
+	}
+
 	getPositionXY(advance){
-		let half = CELLSIZE/2;
-		//If the orientation is north or south
-		let pos = [this.comingFrom[0], this.comingFrom[1]];
-		let directions = [Math.sign(this.goingTo[0]-this.comingFrom[0]),
-			Math.sign(this.goingTo[1]-this.comingFrom[1])];
-		if(this.orientation%2 ==0){
+		//Return the position of the plane depending of advance on segment
+	}
+
+	addToPath(path){
+		//add this segment to the specified path
+		this.path = path;
+		this.posX = path.posX;
+		this.posY = path.posY;
+		this.calculateEndPos();
+		path.addSegment(this);
+	}
+
+	calculateEndPos(){
+		//calculate the end position of the segment,
+		//regard to the canvas
+	}
+}
+
+class StraightSegment extends PathSegment{
+	constructor (length, path){
+		super(STRAIGHT, path.orientation, length, path);
+	}
+
+	calculateEndPos(){
+		this.endPosX = this.posX + ((2-this.orientation)%2)*this.length;
+		this.endPosY = this.posY + ((this.orientation -1 )%2)*this.length;
+		console.log(this.endPosX,this.endPosY);
+	}
+	
+	drawSegment(){
+		ctxBackground.beginPath();
+		ctxBackground.moveTo(this.posX*CELLSIZE, this.posY*CELLSIZE);
+		ctxBackground.lineTo(this.endPosX*CELLSIZE, this.endPosY*CELLSIZE);
+		ctxBackground.stroke();
+	}
+
+	getPositionXY(advance){
+		//Return the position of the plane in an array [X,Y]
+		let pos = [0,0];
+		pos[0] = this.posX + ((2-this.orientation)%2)*advance;
+		pos[1] = this.posY + ((this.orientation -1)%2)*advance;
+		return pos;
+	}
+}
+
+class LeftTurnSegment extends PathSegment{
+	constructor (path){
+		super(LEFT, path.orientation, 3/2, path);
+		//Starting angle
+		this.startAngle = Math.PI*this.orientation/2;
 		
-		if(advance < half){
-			pos[1] += advance*directions[1];
-		} else {
-			pos[1] += half*directions[1];
-		 	advance -= half;
-			if(advance < half){
-				pos[0] +=advance*directions[0];
-				pos[1] +=advance*directions[1];
+	}
+	
+	calculateEndPos(){
+		if(this.orientation % 2 == 0){
+			if(this.orientation < 2 ){ // North
+				this.endPosX = this.posX - 1;
+				this.endPosY = this.posY - 1;
+			} else { // South
+				this.endPosX = this.posX + 1;
+				this.endPosY = this.posY + 1;
+			}
+			//calculate the center of rotation
+			this.centerX = this.endPosX;
+			this.centerY = this.posY;
+		}else{
+			if(this.orientation < 2){// East
+				this.endPosX = this.posX + 1;
+				this.endPosY = this.posY - 1;
+			} else {// West
+				this.endPosX = this.posX - 1;
+				this.endPosY = this.posY + 1;
+			}
+			//calculate the center or rotation
+			this.centerX = this.posX;
+			this.centerY = this.endPosY;
+		} 
+	}
+	
+	drawSegment(){
+		ctxBackground.beginPath();
+		ctxBackground.arc(this.centerX*CELLSIZE, this.centerY*CELLSIZE, CELLSIZE,
+							this.startAngle,this.startAngle-Math.PI/2, true);	
+		ctxBackground.stroke();
+	}
+
+	getPositionXY(advance){
+		let third = 1/2;
+		let pos = [this.posX,this.posY];
+		let signs = [Math.sign(this.posX-this.endPosX),Math.sign(this.posY-this.endPosY)];
+
+		if(this.orientation%2 ==0){//North/South -> vertical then horizontal
+		
+			if(advance < third){//Less than a third of the segment done
+				pos[1] += advance*signs[1];
 			} else {
-				pos[0] +=half*directions[0];
-				pos[1] +=half*directions[1];
-				advance -= half;
-				pos[0] +=advance*directions[0];
+				pos[1] += third*signs[1];
+		 		advance -= third;
+				if(advance < third){//between one and two third done
+					pos[0] +=advance*signs[0];
+					pos[1] +=advance*signs[1];
+				} else {//more than two third done
+					pos[0] +=third*signs[0];
+					pos[1] +=third*signs[1];
+					advance -= third;
+					pos[0] +=advance*signs[0];
+				}
+			}
+		} else { // East/West -> horizontal then vertical
+		
+			if(advance < third){//Less than a third done
+				pos[0] += advance*signs[0];
+			} else {
+				pos[0] += third*signs[0];
+		 		advance -= third;
+				if(advance < third){//between one and two third done
+					pos[0] +=advance*signs[0];
+					pos[1] +=advance*signs[1];
+				} else {//more than two third done
+					pos[0] +=third*signs[0];
+					pos[1] +=third*signs[1];
+					advance -= third;
+					pos[1] +=advance*signs[1];
+				}
 			}
 		}
-		} else {
-		
-		if(advance < half){
-			pos[0] += advance*directions[0];
-		} else {
-			pos[0] += half*directions[0];
-		 	advance -= half;
-			if(advance < half){
-				pos[0] +=advance*directions[0];
-				pos[1] +=advance*directions[1];
-			} else {
-				pos[0] +=half*directions[0];
-				pos[1] +=half*directions[1];
-				advance -= half;
-				pos[1] +=advance*directions[1];
+		return pos;
+
+	}
+
+}
+
+class RightTurnSegment extends PathSegment{
+	constructor(path){
+		super(RIGHT,path.orientation, 3/2, path);
+		//Starting angle
+		this.startAngle = Math.PI*(this.orientation-2)/2;
+	}
+
+	calculateEndPos(){
+		if(this.orientation%2 == 0){
+			if(this.orientation < 2){// North
+				this.endPosX = this.posX + 1;
+				this.endPosY = this.posY - 1;
+			} else { // South
+				this.endPosX = this.posX - 1;
+				this.endPosY = this.posY + 1;
 			}
+			this.centerX = this.endPosX;
+			this.centerY = this.posY;
+		} else {
+			if(this.orientation < 2){// East
+				this.endPosX = this.posX + 1;
+				this.endPosY = this.posY + 1;
+			} else {// West
+				this.endPosX = this.posX - 1;
+				this.endPosY = this.posY - 1;
+			}
+			this.centerX = this.posX;
+			this.centerY = this.endPosY;
 		}
+	}
+	
+	drawSegment(){
+		ctxBackground.beginPath();
+		ctxBackground.arc(this.centerX*CELLSIZE,this.centerY*CELLSIZE,CELLSIZE,
+							this.startAngle,this.startAngle+Math.PI/2,false);
+		ctxBackground.stroke();
+	}
+
+	getPositionXY(advance){
+		let third = 1/2;
+		let pos = [this.posX,this.posY];
+		let signs = [Math.sign(this.posX-this.endPosX),Math.sign(this.posY-this.endPosY)];
+
+		if(this.orientation%2 ==0){//North/South -> vertical then horizontal
+		
+			if(advance < third){//Less than a third of the segment done
+				pos[1] += advance*signs[1];
+			} else {
+				pos[1] += third*signs[1];
+		 		advance -= third;
+				if(advance < third){//between one and two third done
+					pos[0] +=advance*signs[0];
+					pos[1] +=advance*signs[1];
+				} else {//more than two third done
+					pos[0] +=third*signs[0];
+					pos[1] +=third*signs[1];
+					advance -= third;
+					pos[0] +=advance*signs[0];
+				}
+			}
+		} else { // East/West -> horizontal then vertical
+		
+			if(advance < third){//Less than a third done
+				pos[0] += advance*signs[0];
+			} else {
+				pos[0] += third*signs[0];
+		 		advance -= third;
+				if(advance < third){//between one and two third done
+					pos[0] +=advance*signs[0];
+					pos[1] +=advance*signs[1];
+				} else {//more than two third done
+					pos[0] +=third*signs[0];
+					pos[1] +=third*signs[1];
+					advance -= third;
+					pos[1] +=advance*signs[1];
+				}
+			}
 		}
 		return pos;
 	}
 }
 
+class PathModel {
+	/*
+	 * At the construction, all models point North and start at the bottom left corner
+	 * When applied to a path, we make the change needed
+	 */
+	constructor(instructions,direction, endLeftCorner){
+		//Instruction is an array composed of :
+		//"r", "l" for right and left turn, and numbers for straight segment
+		//(number = lenght of the straight segment)
+		this.instructions = instructions;
+		this.direction = direction;
+		this.startLeftCorner = true;
+		this.endLeftCorner = endLeftCorner;
+	}
+
+	createPath(lastPath){
+		let newPath;
+		if(lastPath.startLeftCorner){
+			newPath = new Path(lastPath.posX, lastPath.posY, this.direction,
+				lastPath.orientation, true, this.endLeftCorner);
+			console.log(newPath);
+			//add the segments to the path
+			this.instructions.forEach(function(element){
+				this.addInstruction(newPath,element, false);
+			},this);
+		} else {
+			newPath = (lastPath.posX, lastPath.posY, -this.direction,
+				lastPath.orientation, false, !this.endLeftCorner);
+			console.log(newPath);
+			//add the segments to the path
+			this.instructions.forEach(function(element){
+				this.addInstruction(newPath,element, true);
+			},this);
+		}
+		return newPath;
+	}
+	//Add a new segment corresping to the instruction
+	addInstruction(path,instruction,invert){
+		let seg;
+		if(invert){ // We have to invert the segment
+			switch(instruction){
+				case "l" :
+					seg = new RightTurnSegment(path);
+					break;
+				case "r" :
+					seg = new LeftTurnSegment(path);
+					break;
+				default :
+					seg = new StraightSegment(instruction, path);
+			}
+		}else { // Do no invert the segment
+			switch(instruction){
+				case "r" :
+					seg = new RightTurnSegment(path);
+					break;
+				case "l" :
+					seg = new LeftTurnSegment(path);
+					break;
+				default :
+				 	seg = new StraightSegment(instruction, path);
+			}
+		}
+	}
+}
 class AreaTester {
     
     constructor(path){
@@ -662,7 +716,7 @@ class AreaTester {
         this.listOfAreas = path.listOfAreas;
         this.towerOutOfRange = [];
         this.towerInRange = [];
-        this.pos = [this.currentSegment.comingFrom[0],this.currentSegment.comingFrom[1]];
+        this.pos = [this.currentSegment.posX,this.currentSegment.posY];
     }
 
     testArea(){
@@ -809,7 +863,7 @@ function getRoadTexture(){
         roadPattern =ctxBackground.createPattern(roadTexture, "repeat");
 		//Draw the paths
 		for(let i=0; i< paths.length;i++){
-			paths[i].draw();
+			paths[i].drawPath();
 		}
         getTowerImage();
     }
@@ -883,32 +937,24 @@ function createPath(i){
 	let path;
 	let lastPath;
 	if(paths.length == 0){
-		lastPath = new Path(0,CELLSIZE,EAST);
+		lastPath = new Path(0,1,STRAIGHT,EAST,true,true);
 	} else {
 		lastPath = paths[paths.length-1];
 	}
-	path = new Path(lastPath.pos[0], lastPath.pos[1], lastPath.direction);
-		let	model = pathModels.left[0];
-	for(let j=0;j< model.length;j++){
-		switch (model[j]) {
-			case "l" : 
-				path.addLeftTurn();
-				break;
-			case "r" :
-				path.addRightTurn();
-				break;
-			default : 
-				path.addStraight(model[j]*CELLSIZE);
-		}
-	}
+	path = pathModels.right[0].createPath(lastPath);
 	return path;
 }
 
 function generatePathModels(){
-	pathModels.right.push([6,"r",2,"r","r","l",2,"l",2,"l",4,"r"]);
-	pathModels.left.push([4,"r",2,"r","r","l","l",2,"l",4,"l",6]);
-	pathModels.left.push(["l",4,"r","r",4,"l",2,"l","l",1,"r",1,"r",1,"l",1]);
-	pathModels.straight.push(["l",2,"r","r",2,"l","l",4,"r","r",4,"l"]);
+	let pathModel;
+	pathModel = new PathModel([6,"r",2,"r","r","l",2,"l",2,"l",4,"r"],RIGHT,true);
+	pathModels.right.push(pathModel);
+	pathModel = new PathModel([4,"r",2,"r","r","l","l",2,"l",4,"l",6],LEFT,false);
+	pathModels.left.push(pathModel);
+	pathModel = new PathModel(["l",4,"r","r",4,"l",2,"l","l",1,"r",1,"r",1,"l",1],LEFT,false);
+	pathModels.left.push(pathModel);
+	pathModel = new PathModel(["l",2,"r","r",2,"l","l",4,"r","r",4,"l"],STRAIGHT,false);
+	pathModels.straight.push(pathModel);
 }
 
 

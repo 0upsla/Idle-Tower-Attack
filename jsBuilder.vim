@@ -7,7 +7,7 @@
 :$
 :r %:h\graphic.js
 :$
-:r %:h\class\pathClass.js
+:r %:h\class\newPathClass.js
 :$
 :r %:h\class\planeClass.js
 :$
@@ -15,7 +15,9 @@
 :$
 :r %:h\class\bulletClass.js
 :$
-:r %:h\class\segmentClass.js
+:r %:h\class\newSegmentClass.js
+:$
+:r %:h\class\pathModelClass.js
 :$
 :r %:h\class\areaTesterClass.js
 :$

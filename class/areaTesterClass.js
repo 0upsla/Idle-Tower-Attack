@@ -8,7 +8,7 @@ class AreaTester {
         this.listOfAreas = path.listOfAreas;
         this.towerOutOfRange = [];
         this.towerInRange = [];
-        this.pos = [this.currentSegment.comingFrom[0],this.currentSegment.comingFrom[1]];
+        this.pos = [this.currentSegment.posX,this.currentSegment.posY];
     }
 
     testArea(){

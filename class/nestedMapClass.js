@@ -1,4 +1,4 @@
-class nestedMap{
+class NestedMap{
 	constructor(level, size ){
 		this.level = level;
 		this.size = size;
