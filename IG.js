@@ -27,7 +27,8 @@ let pathModels = {
 	left : []
 };
 let planes = [];
-let paths = [];
+//let paths = [];
+let map = new nestedMap();
 let bullets = [];
 
 
@@ -669,9 +670,9 @@ class PathModel {
 		//Instruction is an array composed of :
 		//"r", "l" for right and left turn, and numbers for straight segment
 		//(number = lenght of the straight segment)
+		//PathModels always start left corner, coming from west.
 		this.instructions = instructions;
 		this.direction = direction;
-		this.startLeftCorner = true;
 		this.endLeftCorner = endLeftCorner;
 	}
 
@@ -859,6 +860,67 @@ class Area {
     }
 
 }
+
+class nestedMap{
+	constructor(){
+		this.maxLevel = 0;
+		this.pointers = [];
+	}
+
+	addLevel(){
+		this.maxLevel++;
+		newPointer = new MapNode(maxLevel);
+		newPointer.setChild(this.pointers[maxLevel-1]);
+		this.pointers.push(newPointer);
+	}
+}
+
+
+class MapNode{
+	constructor(level){
+		this.level = level;
+		this.MAXCHILD = Math.pow(level,2);
+		this.childNodes = [];
+		this.parentNode = null;
+		
+	}
+
+	nextNode(){
+		if(this.childNodes.length < this.MAXCHILD){
+			newNodeChild = new MapNode(this.level -1);
+			this.childNodes.push(newNodeChild);
+			return newNodeChild;
+		} else if(this.parentNode != null){
+			return this.parentNode.nextNode();
+		}else {
+			myParent = new NestedNode(this.level +1);
+			myParent.setChild(this);
+			this.parentNode = myParent;
+			return myParent.nextNode();
+		}
+	}
+
+	setChild(childNode){
+		if(childNode.level-1 == this.level){
+			this.childNodes.push(childNode);
+			return true;
+		} else {
+			return false;
+		}
+	}
+
+	drawMap(){
+		if(this.level === 0){
+			this.drawPath();
+		} else {
+			this.childNodes.forEach(function(node) {
+				node.drawMap();
+			});
+		}
+	}
+}
+//TODO know the type of your next child
+//TODO learn your new orientation when you add a child
 
 
 function loadImage(){

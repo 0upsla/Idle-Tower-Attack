@@ -7,9 +7,9 @@ class PathModel {
 		//Instruction is an array composed of :
 		//"r", "l" for right and left turn, and numbers for straight segment
 		//(number = lenght of the straight segment)
+		//PathModels always start left corner, coming from west.
 		this.instructions = instructions;
 		this.direction = direction;
-		this.startLeftCorner = true;
 		this.endLeftCorner = endLeftCorner;
 	}
 

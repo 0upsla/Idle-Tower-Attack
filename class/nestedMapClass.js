@@ -1,28 +1,61 @@
-class NestedMap{
-	constructor(level, size ){
+class nestedMaps{
+	constructor(models){
+		this.maxLevel = 1;
+		this.models = models;
+		this.pointers = [];
+		this.pointers.push(models.getNext());
+	}
+
+	addLevel(){
+		this.maxLevel++;
+		newPointer = new MapNode(maxLevel);
+		newPointer.setChild(this.pointers[maxLevel-1]);
+		this.pointers.push(newPointer);
+	}
+
+	nextMap(){
+		let currentLevel = 1;
+		newItinerary = this.models.getNext();
+		while(!this.pointers[currentLevel].addChild(newItinerary)){
+			currentLevel++;
+			if (currentLevel == this.maxLevel){
+				this.addLevel
+			}
+		}
+	}
+}
+
+
+class MapNode{
+	constructor(level){
 		this.level = level;
-		this.size = size;
-		this.MAXCHILD = Math.pow(size,2);
-		this.childMaps = [];
+		this.MAXCHILD = Math.pow(level,2);
+		this.childNodes = [];
+		this.itinerary = null;
 	}
-	defineParentMap(parentMap) {
-		this.parentMap = parentMap;	
-	}
-	addChildMap(newChildMap){
-		if(this.childMaps.length < this.MAXCHILD ){
-			newChildMap.defineParentMap(this);
-			this.childMaps[this.childMaps.length-1].setNextMap(newChildMap);
-			this.childMaps.push(newChildMap);
+
+
+	addChild(childNode){
+		if(childNode.level-1 == this.level){
+			this.childNodes.push(childNode);
 			return true;
 		} else {
 			return false;
 		}
 	}
+	 setPath(newItinerary){
+	 	this.itinerary = newItinerary;
+	 }
 
-	setNextMap(nextMap){
-		this.nextMap = nextMap;
+	drawMap(){
+		if(this.level === 0){
+			this.itinerary.drawPath();
+		} else {
+			this.childNodes.forEach(function(node) {
+				node.drawMap();
+			});
+		}
 	}
-	
 }
 //TODO know the type of your next child
 //TODO learn your new orientation when you add a child

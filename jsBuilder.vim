@@ -21,6 +21,8 @@
 :$
 :r %:h\class\areaTesterClass.js
 :$
+:r %:h\class\nestedMapClass.js
+:$
 :r %:h\function\fLoadImage.js
 :$
 :r %:h\function\fDrawBackGround.js
